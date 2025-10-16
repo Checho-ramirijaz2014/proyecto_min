@@ -56,3 +56,18 @@ for app in tqdm(apps):
 df = pd.DataFrame(data)
 df.to_csv("datos/steam_api_data.csv", index=False)
 print("✅ Datos guardados en steam_games_data.csv")
+
+def api_gamalytic(guardar=False):
+    app_url = "https://api.gamalytic.com/steam-games/list"
+    header = {"Content-Type": "application/json"}
+
+    response = requests.get(app_url, headers=header)
+    data = response.json()["result"]
+    df = pd.DataFrame(data)
+    
+
+    if guardar:
+        df.to_csv("datos/gamalytic.csv", index=False)
+        print("✅ Datos de Gamalytic guardados en gamalytic.csv")
+
+    return df
