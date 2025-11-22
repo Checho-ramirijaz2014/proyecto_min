@@ -118,4 +118,38 @@ for threshold in thresholds:
     report = classification_report(y_test, y_pred_knn, output_dict=True)
     resultados[threshold]['knn'] = (report['1']['precision'], report['1']['recall'])
 
-    print(f"Threshold {threshold}: {resultados[threshold]}")
+
+print()
+print("              |     Logistic Reg.     |     Random Forest     |          KNN          |")
+print("  Threshold   | Precision |   Recall  | Precision |   Recall  | Precision |   Recall  |")
+for threshold in thresholds:
+    print(f"  {threshold:3d} horas   ", end="|")
+    for model in resultados[threshold]:
+        precision, recall = resultados[threshold][model]
+        print(f"   {precision:.3f}   |   {recall:.3f}   ", end="|")
+    print()
+
+# Sacamos la precision y recall mediano de cada modelo
+precision_mediana = {model: [] for model in ['logistic_regression', 'random_forest', 'knn']}
+recall_mediana = {model: [] for model in ['logistic_regression', 'random_forest', 'knn']}
+for threshold in thresholds:
+    for model in resultados[threshold]:
+        precision, recall = resultados[threshold][model]
+        precision_mediana[model].append((precision))
+        recall_mediana[model].append((recall))
+
+print("-------------------------------------------------------------------------------------")
+
+print("    Media     ", end="|")
+for model in precision_mediana:
+    prec_med = sum(precision_mediana[model])/10
+    rec_med = sum(recall_mediana[model])/10
+    print(f"   {prec_med:.3f}   |   {rec_med:.3f}   ", end="|")
+print()
+
+print("   Mediana    ", end="|")
+for model in precision_mediana:
+    prec_med = np.median(precision_mediana[model])
+    rec_med = np.median(recall_mediana[model])
+    print(f"   {prec_med:.3f}   |   {rec_med:.3f}   ", end="|")
+print()
