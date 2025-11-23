@@ -16,7 +16,11 @@ df = pd.read_csv("datos/datos.csv")
 
 df_filtrado = df.drop(columns=['unreleased', 'nombre', 'appid'])
 
+# thresholds = [5, 10, 100]
 thresholds = [5, 10, 15, 20, 30, 50, 75, 100, 150, 200]
+
+for i in range(len(thresholds)):
+    thresholds[i] = thresholds[i] * 1000  # Convertimos horas a minutos
 
 resultados= {threshold: {} for threshold in thresholds}
 
@@ -24,13 +28,13 @@ resultados= {threshold: {} for threshold in thresholds}
 for threshold in thresholds: 
     # Probemos un enfoque distinto, en cambio crearemos una nueva columna con un 'threshold' de playtime y haremos clasificación.
     # Es decir, si el playtime es mayor a X horas, clase 1, sino clase 0.
-    df_filtrado['high_playtime'] = (df_filtrado['average_playtime'] > threshold).astype(int)
+    df_filtrado['high_sales'] = (df_filtrado['copiessold'] > threshold).astype(int)
 
     # Creamos también una columna que sea la razón entre rating positivos y negativos
     df_filtrado['rating_ratio'] = df_filtrado['positive_ratings'] / (df_filtrado['negative_ratings'] + 1)  # +1 para evitar división por cero
 
-    X = df_filtrado.drop(columns=["average_playtime", "high_playtime", "median_playtime", "owners", "revenue", "positive_ratings", "negative_ratings", "copiessold"]).copy()
-    y = df_filtrado["high_playtime"].copy()
+    X = df_filtrado.drop(columns=["average_playtime", "high_sales", "median_playtime", "owners", "revenue", "positive_ratings", "negative_ratings", "copiessold"]).copy()
+    y = df_filtrado["high_sales"].copy()
 
     columnas_cuantitativas = ["price", "required_age", "achievements", "rating_ratio", "reviewscore"]
     columnas_lista = ["platforms", "genres", "categories"]
@@ -89,7 +93,7 @@ for threshold in thresholds:
     # RANDOM FOREST
     rf = RandomForestClassifier(
     n_estimators=200,
-    max_depth=20,
+    max_depth=12,
     max_features='sqrt',
     oob_score=True,
     random_state=42
@@ -118,12 +122,11 @@ for threshold in thresholds:
     report = classification_report(y_test, y_pred_knn, output_dict=True)
     resultados[threshold]['knn'] = (report['1']['precision'], report['1']['recall'])
 
-
 print()
 print("              |     Logistic Reg.     |     Random Forest     |          KNN          |")
 print("  Threshold   | Precision |   Recall  | Precision |   Recall  | Precision |   Recall  |")
 for threshold in thresholds:
-    print(f"  {threshold:3d} horas   ", end="|")
+    print(f" {threshold//1000:3d}k ventas  ", end="|")
     for model in resultados[threshold]:
         precision, recall = resultados[threshold][model]
         print(f"   {precision:.3f}   |   {recall:.3f}   ", end="|")
@@ -153,3 +156,4 @@ for model in precision_mediana:
     rec_med = np.median(recall_mediana[model])
     print(f"   {prec_med:.3f}   |   {rec_med:.3f}   ", end="|")
 print()
+
